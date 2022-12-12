@@ -7,17 +7,138 @@
     <meta name="author" content="">
 
     <title>밸류어블 PC control</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 
-    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/sign-in/">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
-
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
   </head>
 
   <body class="text-center">
-    
-    <div> gg</div>
+	<style>
+		.btn-primary, .btn-info, .btn-light{
+			display: none;
+		}
+
+	</style>
+    <div class="container">
+			<div class="row">
+				<div class="col">
+          <h1 class="h1 mb-5"> </h1>
+			<h1 class="h2 mb-5"> 테스트용 </h1>
+          <h2 class="h2 mb-4">{{userName}}</h2>
+          <div style="margin: 50px;">
+			<button type="button" class="btn btn-primary" id="own-pc" value="0">자기 pc on</button></div>
+			{% if userGroup == 'admin' %}
+				<button type="button" class="btn btn-primary amdin" value="#">admin 개발 임시용</button>
+			{% endif %}
+			<button type="button" class="btn btn-info" id="collect-left" value="1" style="margin: 20px;">왼쪽 pc on</button>
+          <!-- padding으로 주니까 버튼 크기가 커진다.. 안쪽 주는거라 그런가. 이사님 fastcampus 영상 보고싶다.. html수업,, + css + bootstrap -->
+			<button type="button" class="btn btn-light" id="collect-right" value="2" style="margin: 20px;">오른쪽 pc on</button>
+				</div>
+			</div>
+		</div>
+
+
+    <script>
+			$(function() {
+
+				let user_id = "{{ userID | safe}}"; 
+				console.log(user_id)
+
+				let user_group = "{{ userGroup | safe }}";
+
+
+				if ( user_group == 'multiGroup') {
+					$('#own-pc').show();
+					$('#collect-left').show();
+					$('#collect-right').show();
+				} else if( user_group == 'uniGroup'){
+					$('#own-pc').show();
+				} else if( user_group == 'admin'){
+					console.log('its admin')
+					$('#own-pc').show();
+					$('#collect-left').show();
+					$('#collect-right').show();
+				}
+				
+				$('#own-pc').click(function() {
+
+					let params = {
+						id : user_id,
+						group : user_group	
+					}
+
+					$.ajax({    //
+						type: "POST",
+						url: "/ownPC",
+						contentType: 'application/json',    // 서버로 보내는 데이터 형식
+						dataType: 'json',   // 서버에서 들어오는 데이터 형식
+						// dataType: 'text',   // 서버에서 들어오는 데이터 형식
+						data: JSON.stringify(params),
+						success: function(data) {
+							console.log('통신 성공');
+							console.log('데이터: ',data);
+						},
+						error: function(request, status, error) {
+							console.log(status);
+							console.log(error);
+						}
+					});
+				});
+			
+				$('#collect-left').click(function() {
+					
+					let params = {
+						id : user_id,
+						group : user_group	
+					}
+
+					$.ajax({    //
+						type: "POST",
+						url: "/collectLeft",
+						contentType: 'application/json',    // 서버로 보내는 데이터 형식
+						dataType: 'json',   // 서버에서 들어오는 데이터 형식
+						data: JSON.stringify(params),
+						success: function(data) {
+							console.log('통신 성공');
+							console.log('데이터: ',data);
+						},
+						error: function(request, status, error) {
+							console.log(status);
+							console.log(error);
+						}
+					});
+				});
+
+				$('#collect-right').click(function() {
+					
+					let params = {
+						id : user_id,
+						group : user_group	
+					}
+
+					$.ajax({    //
+						type: "POST",
+						url: "/collectRight",
+						contentType: 'application/json',    // 서버로 보내는 데이터 형식
+						dataType: 'json',   // 서버에서 들어오는 데이터 형식
+						data: JSON.stringify(params),
+						success: function(data) {
+							console.log('통신 성공');
+							console.log('데이터: ',data);
+						},
+						error: function(request, status, error) {
+							console.log(status);
+							console.log(error);
+						}
+					});
+				});
+			});
+
+		</script>
+
   </body>
 </html>
