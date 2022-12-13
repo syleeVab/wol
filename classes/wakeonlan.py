@@ -19,6 +19,6 @@ def wakeOnLan(mac) :
     s.sendto(magic, ('172.30.1.255',7))
     s.close()
     
-wakeOnLan('B4-2E-99-4C-05-DF')
+# wakeOnLan('B4-2E-99-4C-05-DF')
     
     
