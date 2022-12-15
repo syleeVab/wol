@@ -7,41 +7,50 @@
     <meta name="author" content="">
 
     <title>밸류어블 PC control</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-
-    <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+
 	<style>
+		html,
+		body {
+			height: 100%;
+		}
 
 	</style>
   </head>
 
-  <body class="text-center">
-		<h1 class="h1 mb-5"> </h1>
-		<h1 class="h2 mb-5"> 테스트용 </h1>
-		<h2 class="h2 mb-4">{{userName}}</h2>
-		<div class="row"></div>
-			<div class="for-personal">
-				<button type="button" class="btn btn-primary" id="personal-pc" value="0">자기 pc on</button>
+  <body class="text-center d-flex">
+	<div class="container align-self-center">
+		<!-- <h1 class="h1 mb-5"> </h1>
+		<h1 class="h2 mb-5"> </h1> -->
+		<div class="welcom-user-text">
+			<h2 class="h1 mb-5">{{userName}}님 환영합니다</h2>
+		</div>
+		<div class="button-box">
+			<div class="for-personal mb-5">
+				<button type="button" class="btn btn-primary" id="personal-pc" value="0">{{userName}}님 pc on</button>
 			</div>
 			{% if userGroup == 'admin' %}
-			<div class="for-admin">
+			<div class="for-admin mb-4">
 				<!--  -->
-				
 			</div>
 			{% endif %}
 
 			{% if userGroup != 'uniGroup' %}
 			<div class="for-collect">
-				<button type="button" class="btn btn-info" id="collect-left" value="1" style="margin: 20px;">왼쪽 pc on</button>
+				<button type="button" class="btn btn-info" id="collect-left" value="1" style="margin: 20px;">왼쪽 수집 pc on</button>
 				<!-- padding으로 주니까 버튼 크기가 커진다.. 안쪽 주는거라 그런가. 이사님 fastcampus 영상 보고싶다.. html수업,, + css + bootstrap -->
-				<button type="button" class="btn btn-light" id="collect-right" value="2" style="margin: 20px;">오른쪽 pc on</button>
+				<button type="button" class="btn btn-light" id="collect-right" value="2" style="margin: 20px;">오른쪽 수집 pc on</button>
 			</div>
 			{% endif %}
+		</div>
 	</div>
     <script>
 		$(function() {
@@ -55,13 +64,22 @@
 
 			// 어드민용 btn 추가
 			if (user_group == 'admin') {
+
 				let adminBox = $('.for-admin');
 				console.log(user_list.length)
 				console.log(typeof(user_list))
+
 				for (let i = 0; i< user_list.length; i++){
 					console.log(user_list[i])
-					adminBox.append($('<button></button>').addClass('btn btn-secondary').val(user_list[i]).text(user_list[i]+'님'));
+
+					adminBox.append($('<span></span>').css('margin', '5px').attr('class', `white-space-${i}`));
+
+
+					spanBox = $(`.white-space-${i}`);
+
+					spanBox.append($('<button></button>').addClass('btn btn-secondary adminBtn').val(user_list[i]).text(user_list[i]+'님'));
 					console.log(i, "finished")
+					console.log($('.adminBtn').val())
 				}	
 			}
 
@@ -142,6 +160,31 @@
 					}
 				});
 			});
+
+			$('.adminBtn').click(function() {
+				
+				let params = {
+					name : user_name,
+					control_name : $(this).val()
+				}
+
+				$.ajax({    //
+					type: "POST",
+					url: "/adminControl",
+					contentType: 'application/json',    // 서버로 보내는 데이터 형식
+					dataType: 'json',   // 서버에서 들어오는 데이터 형식
+					data: JSON.stringify(params),
+					success: function(data) {
+						console.log('통신 성공');
+						console.log('데이터: ',data);
+					},
+					error: function(request, status, error) {
+						console.log(status);
+						console.log(error);
+					}
+				});
+			});
+
 		});
 
 	</script>

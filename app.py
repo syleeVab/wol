@@ -1,7 +1,8 @@
 from flask import Flask, redirect, render_template, request, url_for, session
 import os, sys, login, requests as api_req, json
 from datetime import timedelta
-from classes.user import user_info, adrs_dict, name_list # 사용자 그룹 정보 dict
+from flask_login import login_user, logout_user, LoginManager, current_user, login_required
+from classes.user import user_info, name_list, adrs_dict, isUser, User # 사용자 그룹 정보 dict
 from classes.wakeonlan import wakeOnLan
 
 # 블루프린트로 연결
@@ -13,18 +14,39 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 # # 웹에 한글 출력 시 글짜 깨지는 현상 방지용 : 웹에서는 기본적으로 기존 utf-8 인코딩이 아닌, ascii 인코딩으로 출력됨.
 app.config['JSON_AS_ASCII'] = False
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def user_loader(user_id):
+    user = User(user_id=user_id)
+    if user_info[user_id]['group'] == 'admin':
+        user.isAdmin = True
+    
+    return user
+
+# 현재 사용자가 로그인되어있지 않은 경우
+@login_manager.unauthorized_handler
+def unauthorzed():
+    return redirect('/')
+
 @app.route('/')
 def home():
     return render_template('home.html')
 
 
 @app.route('/personalPC', methods=['POST'])
+@login_required
 def personalControl():
-    user = json.loads(session['user']) # client에서 받는 데이터 쓸 거면 필요없음
+
+    user_id = current_user.get_id().strip()
+    user = user_info[user_id]    
+    # user = json.loads(session['user']) # client에서 받는 데이터 쓸 거면 필요없음
     ID = user.get('id')
     GROUP = user.get('group')
     NAME = user.get('name')
     ADR = user.get('mac_adr')
+    
 
     # if ID == request.json['id'] : # client의 id와 session의 id가 같으면 wol 실행
     if NAME == request.json['name']:
@@ -36,8 +58,10 @@ def personalControl():
 
 
 @app.route('/collectLeft', methods=['POST'])
+@login_required
 def cltLeft():
-    user = json.loads(session['user'])
+    user_id = current_user.get_id().strip()
+    user = user_info[user_id]
     ID = user.get('id')
     GROUP = user.get('group')
     NAME = user.get('name')
@@ -55,8 +79,10 @@ def cltLeft():
 
 
 @app.route('/collectRight', methods=['POST'])
+@login_required
 def cltRight():
-    user = json.loads(session['user'])
+    user_id = current_user.get_id().strip()
+    user = user_info[user_id]    
     ID = user.get('id')
     GROUP = user.get('group')
     NAME = user.get('name')
@@ -72,25 +98,36 @@ def cltRight():
 
 
 @app.route('/adminControl', methods=['POST'])
+@login_required
 def adminControl():
-    user = json.loads(session['user'])
-    ID = user.get('id')
-    GROUP = user.get('group')
+    user_id = current_user.get_id().strip()
+    user = user_info[user_id]
+
     NAME = user.get('name')
 
     if NAME == request.json['name']:
-        selectedName = request.json['selectedForControl']
+        selectedName = request.json['control_name']
+        ADR = adrs_dict[selectedName]
+        wakeOnLan(ADR)
+        print(ADR, 'success')
 
-        pass
+        return json.dumps({f'{selectedName}_wol_success': True})
+    else :
+        return json.dumps({f'{selectedName}_wol_success': False})
         
 
 
 @app.route('/control/', methods=['GET', 'POST'])
+@login_required
 def controlPC():
     if request.method == 'GET':
+        
+        # flask_login current_user 이용
+        user_id = current_user.get_id().strip()
+        user = user_info[user_id]
+
         # session 1 : json으로 전송 시 
-        user = json.loads(session['user']) # json 문자열 parsing(json.loads) 후 'id'key값 얻기(user.get('id')) or user['id'] 마지막건 오류가 좀 나는 거 같음.
-        print(user, type(user))
+        # user = json.loads(session['user']) # json 문자열 parsing(json.loads) 후 'id'key값 얻기(user.get('id')) or user['id'] 마지막건 오류가 좀 나는 거 같음.
 
         # session 2 : id data만 전송 시
         # user_id = session['user'] # counterpart for session / json 말고 일반 data 전송 시
@@ -101,7 +138,8 @@ def controlPC():
 
         # 관리자라면 사용자 이름 전부 가져오기
         userNameList = None
-        if user.get('group') == 'admin':
+        # if user.get('group') == 'admin':
+        if user['group'] == 'admin':
             userNameList = name_list
             print("\nuserNameList => \n", userNameList)
 
@@ -117,31 +155,33 @@ def loginCheck():
         # print(login_info['id'], login_info['pw'])
         login_info = request.form
 
-        data = {'LoginID': login_info['id'], 'LoginPass': login_info['pw']}
-        # api에 전송
-        res = api_req.post('https://carstat.co.kr/api/user/cs/auth', data=data)
+        userCheck = isUser(login_info['id'], login_info['pw'])
+        # data = {'LoginID': login_info['id'], 'LoginPass': login_info['pw']}
+        # # api에 전송
+        # res = api_req.post('https://carstat.co.kr/api/user/cs/auth', data=data)
 
-        if res.status_code == 200: # 200일 경우 정상
+        if userCheck['success'] == True: # 200일 경우 정상
             # session 1 : json으로 전송 시 
-            idCheck = json.dumps(user_info[login_info['id']]) 
-            session['user'] = idCheck # 배포용
+            # idCheck = json.dumps(user_info[login_info['id']]) 
+            # session['user'] = idCheck # 배포용
             # session['user'] = json.dumps(user_info['LEEHANEUL'])
 
             # session 2 : id data 만 전송 시 
             # 이렇게 보내도 되는지?(실행은 됨) web 상에서 데이터 전송 시에는 데이터 타입 json으로 보내야된다고 들었는디,,
             # session['user'] = login_info['id'] 
 
-            print('\nlogin complete by : ', login_info['id'], '\n')
-
             # url_for 로 id data 전송 시 : 문제점 : url에 id값이 그대로 표기됨. id만 변경하면 다른 유저pc로 이동가능할 듯.
             # return redirect(url_for('controlPC', user=login_info['id']))
-            
+
+            # 로그인 아이디로 앞으로 전송 예정
+            login_ob = User(login_info['id'], login_info['pw']) # 배포용
+
+            login_user(login_ob)
+
+            print('\nlogin complete by : ', login_info['id'], '\n')      
             return redirect(url_for('controlPC'))
 
-
-        session['user'] = 'anonymous'
-        print('\nlogin failed => status : ', res.status_code, '\n')
-
+        print('\nlogin failed')
         return render_template('home.html', loginFail=True)
     
 # @app.route()

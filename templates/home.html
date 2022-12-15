@@ -29,7 +29,7 @@
       <input type="text" id="inputID" class="form-control" name="id" placeholder="ID" required autofocus>
       <label for="inputPassword" class="sr-only">Password</label>
       <input type="password" id="inputPassword" class="form-control" name="pw" placeholder="Password" required>
-      {% if loginFail %}<div class="mb-4"> good </div> {% endif %}
+      {% if loginFail %}<div class="mb-4"> 로그인 정보가 틀렸습니다. 다시 입력해주세요 </div> {% endif %}
       <button class="btn btn-lg btn-primary btn-block" id="submitLoginInfo" type="submit">Sign in</button>
       <!-- <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p> -->
     </form>
