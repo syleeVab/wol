@@ -30,12 +30,17 @@
 	<div class="container align-self-center">
 		<!-- <h1 class="h1 mb-5"> </h1>
 		<h1 class="h2 mb-5"> </h1> -->
-		<div class="welcom-user-text">
-			<h2 class="h1 mb-5">{{userName}}님 환영합니다</h2>
+		<div class="welcome-user">
+			{% if userName == '변진환' %}
+			<h1 class="h1 mb-5" style="display : inline; font-size: 50px;"> ✨ </h1>
+			<h1 class="h1 mb-5" style="display : inline; color: white; font-size: 50px;"> 천재님이 입장하셨습니다 </h1>
+			<h2 class="h1 mb-5" style="display : inline; font-size: 50px;"> ✨ </h1>
+			{% endif %}
+			<h2 class="h1 mb-5" id="welcome-user-text"><b>{{userName}}님</b> 환영합니다</h2>
 		</div>
 		<div class="button-box">
 			<div class="for-personal mb-5">
-				<button type="button" class="btn btn-primary" id="personal-pc" value="0">{{userName}}님 pc on</button>
+				<button type="button" class="btn btn-primary" id="personal-pc" value="0" style="margin: 20px;">{{userName}}님 pc on</button>
 			</div>
 			{% if userGroup == 'admin' %}
 			<div class="for-admin mb-4">
@@ -60,6 +65,18 @@
 			let user_name = "{{ userName | safe}}";
 			let user_group = "{{ userGroup | safe }}";
 			let user_list = {{ userNameList | safe }};
+
+			if (user_name == '변진환') {
+				console.log("test")
+				url = '../static/image/bonobono.png'
+				$('body').css({
+					"background-image": `url(${url})`,
+					"background-position": 'center',
+					"background-size": "cover"
+				});
+				$('#welcome-user-text').css("color", "white")
+
+			}
 			
 
 			// 어드민용 btn 추가

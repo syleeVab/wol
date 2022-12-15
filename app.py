@@ -144,6 +144,7 @@ def controlPC():
             print("\nuserNameList => \n", userNameList)
 
         return render_template('control.html', userName = user.get('name'), userGroup = user.get('group'), userNameList=userNameList)
+        # return render_template('control.html', userName = '변진환', userGroup = user.get('group'), userNameList=userNameList)
 
 
 
@@ -189,5 +190,5 @@ def loginCheck():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=5000, debug=True)
+    app.run(host='0.0.0.0',port=18888, debug=True)
     
